@@ -1,0 +1,21 @@
+
+export interface Question {
+  questionId: string;
+  question: string;
+  questionType: string;
+  answerType: string;
+  options: string[];
+  correctAnswer: string[];
+}
+
+export interface UserAnswer {
+  questionId: string;
+  selectedAnswers: (string | null)[];
+  isCorrect?: boolean;
+}
+
+export interface TestResult {
+  totalQuestions: number;
+  correctAnswers: number;
+  userAnswers: UserAnswer[];
+}
