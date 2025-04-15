@@ -12,6 +12,7 @@ export interface UserAnswer {
   questionId: string;
   selectedAnswers: (string | null)[];
   isCorrect?: boolean;
+  questionData?: Question;
 }
 
 export interface TestResult {
@@ -21,5 +22,5 @@ export interface TestResult {
   userName?: string;
   completionTime?: number;
   wordAccuracy?: number;
+  totalCoins?: number;
 }
-

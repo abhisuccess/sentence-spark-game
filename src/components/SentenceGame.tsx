@@ -9,10 +9,19 @@ import Timer from './Timer';
 import SentenceDisplay from './SentenceDisplay';
 import WordOptions from './WordOptions';
 import { Button } from '@/components/ui/button';
-import { ChevronRight, AlertCircle } from 'lucide-react';
+import { ChevronRight, AlertCircle, LogOut, Coins } from 'lucide-react';
 import { useGameContext } from '@/contexts/GameContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
+import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 interface SentenceGameProps {
   questions: QuestionOption[];
@@ -22,14 +31,16 @@ const SentenceGame: React.FC<SentenceGameProps> = ({ questions }) => {
   const navigate = useNavigate();
   const { 
     userAnswers, 
-    setUserAnswers,
+    saveAnswer,
     currentQuestionIndex,
-    setCurrentQuestionIndex
+    setCurrentQuestionIndex,
+    totalCoins
   } = useGameContext();
   
   const [selectedWords, setSelectedWords] = useState<(string | null)[]>([]);
   const [timerActive, setTimerActive] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isQuitDialogOpen, setIsQuitDialogOpen] = useState(false);
 
   const currentQuestion = questions[currentQuestionIndex];
   const sentenceParts = parseSentence(currentQuestion.question);
@@ -68,29 +79,12 @@ const SentenceGame: React.FC<SentenceGameProps> = ({ questions }) => {
 
   const handleTimeUp = () => {
     setTimerActive(false);
-    toast.error('Time is up!', {
+    toast.warning('Time is up!', {
       description: 'Moving to the next question.'
     });
     
     // Auto-save current answer state even if incomplete
-    const newUserAnswer: UserAnswer = {
-      questionId: currentQuestion.questionId,
-      selectedAnswers: [...selectedWords],
-      isCorrect: checkAnswers(selectedWords, currentQuestion.correctAnswer)
-    };
-    
-    const updatedUserAnswers = [...userAnswers];
-    const existingIndex = updatedUserAnswers.findIndex(
-      answer => answer.questionId === currentQuestion.questionId
-    );
-    
-    if (existingIndex !== -1) {
-      updatedUserAnswers[existingIndex] = newUserAnswer;
-    } else {
-      updatedUserAnswers.push(newUserAnswer);
-    }
-    
-    setUserAnswers(updatedUserAnswers);
+    saveUserAnswer();
     
     // Move to next question automatically after a brief delay
     setTimeout(() => {
@@ -103,27 +97,22 @@ const SentenceGame: React.FC<SentenceGameProps> = ({ questions }) => {
     }, 1000);
   };
 
-  const saveAnswerAndContinue = () => {
-    setIsSubmitting(true);
-    // Save the current answer
+  const saveUserAnswer = () => {
+    // Save the current answer, complete or not
     const newUserAnswer: UserAnswer = {
       questionId: currentQuestion.questionId,
       selectedAnswers: [...selectedWords],
-      isCorrect: checkAnswers(selectedWords, currentQuestion.correctAnswer)
+      isCorrect: checkAnswers(selectedWords, currentQuestion.correctAnswer),
+      questionData: currentQuestion // Store question data for coin calculation
     };
     
-    const updatedUserAnswers = [...userAnswers];
-    const existingIndex = updatedUserAnswers.findIndex(
-      answer => answer.questionId === currentQuestion.questionId
-    );
-    
-    if (existingIndex !== -1) {
-      updatedUserAnswers[existingIndex] = newUserAnswer;
-    } else {
-      updatedUserAnswers.push(newUserAnswer);
-    }
-    
-    setUserAnswers(updatedUserAnswers);
+    saveAnswer(newUserAnswer);
+  };
+
+  const saveAnswerAndContinue = () => {
+    setIsSubmitting(true);
+    // Save the current answer
+    saveUserAnswer();
     
     // Add a small delay for the animation
     setTimeout(() => {
@@ -138,33 +127,79 @@ const SentenceGame: React.FC<SentenceGameProps> = ({ questions }) => {
     }, 500);
   };
 
+  const handleQuit = () => {
+    // Save current progress before quitting
+    saveUserAnswer();
+    toast.info('Quiz ended', {
+      description: 'Redirecting to results page'
+    });
+    navigate('/results');
+    setIsQuitDialogOpen(false);
+  };
+
   const isAllBlanksFilledIn = selectedWords.every(word => word !== null);
   const progressPercentage = ((currentQuestionIndex + 1) / questions.length) * 100;
 
   return (
     <Card className="max-w-3xl mx-auto shadow-lg border-purple-200 bg-white/90 backdrop-blur-sm">
-      <CardContent className="p-6 md:p-8">
-        <div className="mb-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-            <div>
-              <p className="text-sm text-gray-500 mb-1">Question {currentQuestionIndex + 1} of {questions.length}</p>
-              <Progress value={progressPercentage} className="h-2 bg-gray-200" />
-            </div>
-            
-            <Timer 
-              duration={30} 
-              onTimeUp={handleTimeUp} 
-              isActive={timerActive}
-            />
+      <CardContent className="p-4 md:p-8">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex-1">
+            <p className="text-sm text-gray-500 mb-1">Question {currentQuestionIndex + 1} of {questions.length}</p>
+            <Progress value={progressPercentage} className="h-2 bg-gray-200" />
           </div>
           
-          {!isAllBlanksFilledIn && (
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-start gap-2 text-amber-800 text-sm mt-4">
-              <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-              <p>Fill in all blanks to continue to the next question.</p>
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:flex items-center gap-2 bg-amber-50 px-3 py-1.5 rounded-full border border-amber-200">
+              <Coins className="w-4 h-4 text-amber-500" />
+              <span className="font-medium text-amber-700">{totalCoins} coins</span>
             </div>
-          )}
+            
+            <Dialog open={isQuitDialogOpen} onOpenChange={setIsQuitDialogOpen}>
+              <DialogTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+                >
+                  <LogOut className="h-4 w-4 mr-1" /> Quit
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Quit Quiz</DialogTitle>
+                  <DialogDescription>
+                    Are you sure you want to quit? Your current progress will be saved, and you'll see your results based on questions answered so far.
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setIsQuitDialogOpen(false)}>Cancel</Button>
+                  <Button variant="destructive" onClick={handleQuit}>Yes, quit quiz</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
+        
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+          <div className="flex items-center gap-2 sm:hidden bg-amber-50 px-3 py-1.5 rounded-full border border-amber-200">
+            <Coins className="w-4 h-4 text-amber-500" />
+            <span className="font-medium text-amber-700">{totalCoins} coins</span>
+          </div>
+          
+          <Timer 
+            duration={30} 
+            onTimeUp={handleTimeUp} 
+            isActive={timerActive}
+          />
+        </div>
+        
+        {!isAllBlanksFilledIn && (
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-start gap-2 text-amber-800 text-sm mt-4">
+            <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+            <p>Fill in all blanks to continue to the next question.</p>
+          </div>
+        )}
         
         <div className="bg-purple-50 rounded-xl p-4 md:p-6 border border-purple-100 mb-8">
           <SentenceDisplay 

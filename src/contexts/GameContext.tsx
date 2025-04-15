@@ -10,6 +10,9 @@ interface GameContextType {
   setCurrentQuestionIndex: React.Dispatch<React.SetStateAction<number>>;
   saveAnswer: (answer: UserAnswer) => void;
   resetGame: () => void;
+  totalCoins: number;
+  calculateTotalCoins: () => number;
+  emailResults: (email: string) => void;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -29,6 +32,7 @@ interface GameProviderProps {
 export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
   const [userAnswers, setUserAnswers] = useState<UserAnswer[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [totalCoins, setTotalCoins] = useState(0);
   
   // Load saved state from localStorage when component mounts
   useEffect(() => {
@@ -41,6 +45,11 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
     if (savedIndex) {
       setCurrentQuestionIndex(Number(savedIndex));
     }
+    
+    const savedCoins = localStorage.getItem('totalCoins');
+    if (savedCoins) {
+      setTotalCoins(Number(savedCoins));
+    }
   }, []);
   
   // Save state to localStorage when it changes
@@ -51,6 +60,13 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
     
     localStorage.setItem('currentQuestionIndex', String(currentQuestionIndex));
   }, [userAnswers, currentQuestionIndex]);
+  
+  // Calculate coins whenever answers change
+  useEffect(() => {
+    const coins = calculateTotalCoins();
+    setTotalCoins(coins);
+    localStorage.setItem('totalCoins', String(coins));
+  }, [userAnswers]);
   
   const saveAnswer = (answer: UserAnswer) => {
     setUserAnswers(prev => {
@@ -67,11 +83,40 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
     });
   };
   
+  const calculateTotalCoins = () => {
+    let coins = 0;
+    
+    // Loop through all user answers
+    userAnswers.forEach(answer => {
+      // Get the question data to compare with correct answers
+      const questionData = answer.questionData;
+      if (!questionData) return;
+      
+      // For each blank in the question, check if user's answer matches the correct answer
+      answer.selectedAnswers.forEach((selectedAnswer, index) => {
+        if (selectedAnswer === questionData.correctAnswer[index]) {
+          coins += 1; // Add 1 coin for each correctly answered blank
+        }
+      });
+    });
+    
+    return coins;
+  };
+  
+  const emailResults = (email: string) => {
+    // This would typically connect to a backend API
+    // For now, we'll just simulate it with a console log
+    console.log(`Sending results to: ${email}`);
+    // In a real implementation, you would call your API here
+  };
+  
   const resetGame = () => {
     setUserAnswers([]);
     setCurrentQuestionIndex(0);
+    setTotalCoins(0);
     localStorage.removeItem('userAnswers');
     localStorage.removeItem('currentQuestionIndex');
+    localStorage.removeItem('totalCoins');
   };
   
   const value = {
@@ -81,6 +126,9 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
     setCurrentQuestionIndex,
     saveAnswer,
     resetGame,
+    totalCoins,
+    calculateTotalCoins,
+    emailResults,
   };
   
   return (

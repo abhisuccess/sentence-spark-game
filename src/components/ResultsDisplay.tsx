@@ -4,9 +4,20 @@ import { UserAnswer } from '@/types';
 import { QuestionOption } from '@/data/questions';
 import { parseSentence } from '@/utils/sentenceUtils';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, XCircle, RefreshCw, ChevronDown, ChevronUp, Trophy, BarChart3, ListChecks } from 'lucide-react';
+import { 
+  CheckCircle2, 
+  XCircle, 
+  RefreshCw, 
+  ChevronDown, 
+  ChevronUp, 
+  Trophy, 
+  BarChart3, 
+  ListChecks, 
+  Coins, 
+  Mail
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useUserContext } from '@/contexts/UserContext';
 import { 
@@ -17,6 +28,9 @@ import {
   TableHeader,
   TableRow 
 } from '@/components/ui/table';
+import { Input } from '@/components/ui/input';
+import { toast } from 'sonner';
+import { useGameContext } from '@/contexts/GameContext';
 
 interface ResultsDisplayProps {
   userAnswers: UserAnswer[];
@@ -27,16 +41,40 @@ interface ResultsDisplayProps {
 const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ userAnswers, questions, onRestart }) => {
   const correctCount = userAnswers.filter(answer => answer.isCorrect).length;
   const totalQuestions = questions.length;
-  const scorePercentage = Math.round((correctCount / totalQuestions) * 100);
+  const attemptedQuestions = userAnswers.length;
+  const scorePercentage = Math.round((correctCount / attemptedQuestions) * 100) || 0;
   const navigate = useNavigate();
   const { userName } = useUserContext();
+  const { totalCoins, emailResults } = useGameContext();
   const [expandedQuestion, setExpandedQuestion] = useState<string | null>(null);
+  const [email, setEmail] = useState('');
+  const [isSending, setIsSending] = useState(false);
 
   const toggleQuestion = (questionId: string) => {
     if (expandedQuestion === questionId) {
       setExpandedQuestion(null);
     } else {
       setExpandedQuestion(questionId);
+    }
+  };
+  
+  const handleSendEmail = () => {
+    // Email validation regex
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast.error('Please enter a valid email address');
+      return;
+    }
+    
+    setIsSending(true);
+    try {
+      emailResults(email);
+      toast.success('Results sent to your email!');
+    } catch (error) {
+      toast.error('Failed to send results');
+      console.error(error);
+    } finally {
+      setIsSending(false);
     }
   };
   
@@ -65,6 +103,10 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ userAnswers, questions,
     scorePercentage >= 70 ? 'Good' :
     scorePercentage >= 60 ? 'Fair' : 'Needs Improvement';
 
+  // Max possible coins calculation
+  const maxPossibleCoins = totalBlanks;
+  const coinPercentage = Math.round((totalCoins / maxPossibleCoins) * 100) || 0;
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 animate-fade-in">
       <Card className="mb-10 border-purple-200 shadow-lg bg-white/90 backdrop-blur-sm overflow-hidden">
@@ -89,16 +131,17 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ userAnswers, questions,
             
             <div className="text-center p-4 bg-purple-50 rounded-xl border border-purple-100">
               <div className="text-5xl font-bold text-purple-700 mb-2">
-                {correctCount}/{totalQuestions}
+                {correctCount}/{attemptedQuestions}
               </div>
               <p className="text-gray-600">Questions Correct</p>
             </div>
             
-            <div className="text-center p-4 bg-purple-50 rounded-xl border border-purple-100">
-              <div className="text-5xl font-bold text-purple-700 mb-2">
-                {blankAccuracy}%
+            <div className="text-center p-4 bg-amber-50 rounded-xl border border-amber-100">
+              <div className="flex items-center justify-center gap-2 text-5xl font-bold text-amber-700 mb-2">
+                <Coins className="w-8 h-8" />
+                {totalCoins}/{maxPossibleCoins}
               </div>
-              <p className="text-gray-600">Word Accuracy</p>
+              <p className="text-gray-600">Coins Earned</p>
             </div>
           </div>
           
@@ -113,6 +156,26 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ userAnswers, questions,
               }`}>
                 {performanceGrade}
               </span>
+            </div>
+            <div className="mt-4">
+              <p className="text-sm font-medium text-gray-700 mb-2">Send Results to Email:</p>
+              <div className="flex gap-2">
+                <Input
+                  type="email"
+                  placeholder="Your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="border-purple-200"
+                />
+                <Button 
+                  onClick={handleSendEmail}
+                  disabled={isSending || !email}
+                  className="whitespace-nowrap"
+                >
+                  <Mail className="w-4 h-4 mr-2" />
+                  Send
+                </Button>
+              </div>
             </div>
           </div>
           
@@ -179,6 +242,32 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ userAnswers, questions,
                   </div>
                 </div>
                 
+                <div>
+                  <h3 className="text-lg font-medium mb-3">Coin Rewards</h3>
+                  <div className="p-4 bg-amber-50 border border-amber-100 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-gray-700">Coins Earned</p>
+                      <div className="flex items-center">
+                        <Coins className="w-5 h-5 text-amber-500 mr-1" />
+                        <span className="font-medium text-amber-700">{totalCoins}</span>
+                      </div>
+                    </div>
+                    <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-amber-500 rounded-full" 
+                        style={{ width: `${coinPercentage}%` }}
+                      />
+                    </div>
+                    <div className="flex justify-between text-xs text-gray-500 mt-1">
+                      <span>0</span>
+                      <span>{maxPossibleCoins}</span>
+                    </div>
+                    <p className="text-sm mt-2 text-gray-600">
+                      You've earned {totalCoins} out of {maxPossibleCoins} possible coins ({coinPercentage}%)
+                    </p>
+                  </div>
+                </div>
+                
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -188,8 +277,12 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ userAnswers, questions,
                   </TableHeader>
                   <TableBody>
                     <TableRow>
-                      <TableCell>Total Questions</TableCell>
+                      <TableCell>Total Questions Available</TableCell>
                       <TableCell>{totalQuestions}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>Questions Attempted</TableCell>
+                      <TableCell>{attemptedQuestions}</TableCell>
                     </TableRow>
                     <TableRow>
                       <TableCell>Correct Questions</TableCell>
@@ -200,7 +293,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ userAnswers, questions,
                     <TableRow>
                       <TableCell>Incorrect Questions</TableCell>
                       <TableCell>
-                        <span className="text-red-600 font-medium">{totalQuestions - correctCount}</span>
+                        <span className="text-red-600 font-medium">{attemptedQuestions - correctCount}</span>
                       </TableCell>
                     </TableRow>
                     <TableRow>
@@ -214,6 +307,14 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ userAnswers, questions,
                     <TableRow>
                       <TableCell>Word Placement Accuracy</TableCell>
                       <TableCell>{blankAccuracy}%</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>Total Coins Earned</TableCell>
+                      <TableCell>
+                        <span className="text-amber-600 font-medium flex items-center">
+                          <Coins className="w-4 h-4 mr-1" /> {totalCoins}
+                        </span>
+                      </TableCell>
                     </TableRow>
                   </TableBody>
                 </Table>
@@ -352,10 +453,22 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ userAnswers, questions,
                               isCorrect ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'
                             }`}>
                               <div className="font-medium">Blank {i+1}</div>
-                              <div className="flex items-center justify-center gap-2 mt-1">
-                                <span>Your: {answer.selectedAnswers[i]}</span>
+                              <div className="flex flex-col items-center justify-center mt-1">
+                                <div className="flex items-center gap-1">
+                                  <span>Your:</span>
+                                  <span className="font-medium">{answer.selectedAnswers[i] || '(empty)'}</span>
+                                </div>
                                 {!isCorrect && (
-                                  <span>Correct: {word}</span>
+                                  <div className="flex items-center gap-1">
+                                    <span>Correct:</span>
+                                    <span className="font-medium">{word}</span>
+                                  </div>
+                                )}
+                                {isCorrect && (
+                                  <div className="text-green-600 mt-1 flex items-center">
+                                    <Coins className="w-3.5 h-3.5 mr-1" />
+                                    <span>+1 coin</span>
+                                  </div>
                                 )}
                               </div>
                             </div>
@@ -382,7 +495,7 @@ const renderSentenceWithAnswers = (sentence: string, answers: (string | null)[])
   parts.forEach((part, i) => {
     result += part;
     if (i < parts.length - 1) {
-      result += ` [${answers[i]}] `;
+      result += ` [${answers[i] || '___'}] `;
     }
   });
   

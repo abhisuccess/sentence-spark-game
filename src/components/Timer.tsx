@@ -28,7 +28,8 @@ const Timer: React.FC<TimerProps> = ({ duration, onTimeUp, isActive }) => {
         setTimeLeft((prev) => {
           if (prev <= 1) {
             if (timer) clearInterval(timer);
-            onTimeUp();
+            // Ensure onTimeUp is called immediately when time is up
+            setTimeout(() => onTimeUp(), 0);
             return 0;
           }
           return prev - 1;
