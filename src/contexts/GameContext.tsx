@@ -88,16 +88,10 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
     
     // Loop through all user answers
     userAnswers.forEach(answer => {
-      // Get the question data to compare with correct answers
-      const questionData = answer.questionData;
-      if (!questionData) return;
-      
-      // For each blank in the question, check if user's answer matches the correct answer
-      answer.selectedAnswers.forEach((selectedAnswer, index) => {
-        if (selectedAnswer === questionData.correctAnswer[index]) {
-          coins += 1; // Add 1 coin for each correctly answered blank
-        }
-      });
+      // Award 1 coin only if the entire question is correct
+      if (answer.isCorrect) {
+        coins += 1;
+      }
     });
     
     return coins;

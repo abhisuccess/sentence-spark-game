@@ -42,7 +42,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ userAnswers, questions,
   const correctCount = userAnswers.filter(answer => answer.isCorrect).length;
   const totalQuestions = questions.length;
   const attemptedQuestions = userAnswers.length;
-  const scorePercentage = Math.round((correctCount / attemptedQuestions) * 100) || 0;
+  const scorePercentage = Math.round((correctCount / totalQuestions) * 100) || 0;
   const navigate = useNavigate();
   const { userName } = useUserContext();
   const { totalCoins, emailResults } = useGameContext();
@@ -103,14 +103,14 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ userAnswers, questions,
     scorePercentage >= 70 ? 'Good' :
     scorePercentage >= 60 ? 'Fair' : 'Needs Improvement';
 
-  // Max possible coins calculation
-  const maxPossibleCoins = totalBlanks;
+  // Max possible coins calculation - now 10 coins total
+  const maxPossibleCoins = 10; // 1 coin per correct question
   const coinPercentage = Math.round((totalCoins / maxPossibleCoins) * 100) || 0;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 animate-fade-in">
-      <Card className="mb-10 border-purple-200 shadow-lg bg-white/90 backdrop-blur-sm overflow-hidden">
-        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-6">
+    <div className="max-w-4xl mx-auto px-4 pb-4 animate-fade-in h-[calc(100vh-8rem)] overflow-y-auto">
+      <Card className="mb-6 border-purple-200 shadow-lg bg-white/90 backdrop-blur-sm overflow-hidden">
+        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-4">
           <div className="flex items-center gap-3 mb-2">
             <Trophy className="w-6 h-6" />
             <h2 className="text-2xl font-bold">Results Summary</h2>
@@ -120,34 +120,34 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ userAnswers, questions,
           </p>
         </div>
         
-        <CardContent className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <div className="text-center p-4 bg-purple-50 rounded-xl border border-purple-100">
-              <div className="text-5xl font-bold text-purple-700 mb-2">
+        <CardContent className="p-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
+            <div className="text-center p-3 bg-purple-50 rounded-xl border border-purple-100">
+              <div className="text-4xl font-bold text-purple-700 mb-1">
+                {correctCount}/{totalQuestions}
+              </div>
+              <p className="text-gray-600 text-sm">Score</p>
+            </div>
+            
+            <div className="text-center p-3 bg-purple-50 rounded-xl border border-purple-100">
+              <div className="text-4xl font-bold text-purple-700 mb-1">
                 {scorePercentage}%
               </div>
-              <p className="text-gray-600">Overall Score</p>
+              <p className="text-gray-600 text-sm">Percentage</p>
             </div>
             
-            <div className="text-center p-4 bg-purple-50 rounded-xl border border-purple-100">
-              <div className="text-5xl font-bold text-purple-700 mb-2">
-                {correctCount}/{attemptedQuestions}
-              </div>
-              <p className="text-gray-600">Questions Correct</p>
-            </div>
-            
-            <div className="text-center p-4 bg-amber-50 rounded-xl border border-amber-100">
-              <div className="flex items-center justify-center gap-2 text-5xl font-bold text-amber-700 mb-2">
-                <Coins className="w-8 h-8" />
+            <div className="text-center p-3 bg-amber-50 rounded-xl border border-amber-100">
+              <div className="flex items-center justify-center gap-2 text-4xl font-bold text-amber-700 mb-1">
+                <Coins className="w-6 h-6" />
                 {totalCoins}/{maxPossibleCoins}
               </div>
-              <p className="text-gray-600">Coins Earned</p>
+              <p className="text-gray-600 text-sm">Coins Earned</p>
             </div>
           </div>
           
-          <div className="mb-6">
+          <div className="mb-4">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-medium text-gray-700 mb-1">Performance Assessment:</p>
+              <p className="text-sm font-medium text-gray-700 mb-1">Performance:</p>
               <span className={`text-sm font-medium px-3 py-1 rounded-full ${
                 performanceGrade === 'Excellent' || performanceGrade === 'Very Good' ? 'bg-green-100 text-green-800' :
                 performanceGrade === 'Good' ? 'bg-blue-100 text-blue-800' :
@@ -157,7 +157,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ userAnswers, questions,
                 {performanceGrade}
               </span>
             </div>
-            <div className="mt-4">
+            <div className="mt-3">
               <p className="text-sm font-medium text-gray-700 mb-2">Send Results to Email:</p>
               <div className="flex gap-2">
                 <Input
@@ -192,8 +192,8 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ userAnswers, questions,
         </CardContent>
       </Card>
       
-      <Tabs defaultValue="summary" className="mb-8">
-        <TabsList className="grid grid-cols-3 mb-6">
+      <Tabs defaultValue="summary" className="mb-6">
+        <TabsList className="grid grid-cols-3 mb-4">
           <TabsTrigger value="summary" className="flex items-center gap-2">
             <BarChart3 className="w-4 h-4" />
             <span className="hidden sm:inline">Analytics</span>
@@ -210,43 +210,19 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ userAnswers, questions,
         
         <TabsContent value="summary" className="space-y-4">
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+            <CardHeader className="py-3 px-4">
+              <CardTitle className="flex items-center gap-2 text-lg">
                 <BarChart3 className="w-5 h-5 text-purple-600" />
                 Performance Analytics
               </CardTitle>
-              <CardDescription>
-                Detailed breakdown of your performance
-              </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
+            <CardContent className="px-4 py-2">
+              <div className="space-y-4">
                 <div>
-                  <h3 className="text-lg font-medium mb-3">Word Placement Accuracy</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="p-4 bg-green-50 border border-green-100 rounded-lg flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-gray-500">Correct Words</p>
-                        <p className="text-2xl font-bold text-green-600">{correctBlanks}</p>
-                      </div>
-                      <CheckCircle2 className="w-10 h-10 text-green-500 opacity-40" />
-                    </div>
-                    
-                    <div className="p-4 bg-red-50 border border-red-100 rounded-lg flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-gray-500">Incorrect Words</p>
-                        <p className="text-2xl font-bold text-red-600">{incorrectBlanks}</p>
-                      </div>
-                      <XCircle className="w-10 h-10 text-red-500 opacity-40" />
-                    </div>
-                  </div>
-                </div>
-                
-                <div>
-                  <h3 className="text-lg font-medium mb-3">Coin Rewards</h3>
-                  <div className="p-4 bg-amber-50 border border-amber-100 rounded-lg">
+                  <h3 className="text-base font-medium mb-2">Coin Rewards</h3>
+                  <div className="p-3 bg-amber-50 border border-amber-100 rounded-lg">
                     <div className="flex items-center justify-between mb-2">
-                      <p className="text-gray-700">Coins Earned</p>
+                      <p className="text-gray-700 text-sm">Coins Earned</p>
                       <div className="flex items-center">
                         <Coins className="w-5 h-5 text-amber-500 mr-1" />
                         <span className="font-medium text-amber-700">{totalCoins}</span>
@@ -262,8 +238,10 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ userAnswers, questions,
                       <span>0</span>
                       <span>{maxPossibleCoins}</span>
                     </div>
-                    <p className="text-sm mt-2 text-gray-600">
+                    <p className="text-xs mt-2 text-gray-600">
                       You've earned {totalCoins} out of {maxPossibleCoins} possible coins ({coinPercentage}%)
+                      <br/>
+                      <span className="font-medium">1 coin is awarded for each correctly answered question</span>
                     </p>
                   </div>
                 </div>
@@ -271,15 +249,11 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ userAnswers, questions,
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Metric</TableHead>
+                      <TableHead className="w-1/2">Metric</TableHead>
                       <TableHead>Value</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    <TableRow>
-                      <TableCell>Total Questions Available</TableCell>
-                      <TableCell>{totalQuestions}</TableCell>
-                    </TableRow>
                     <TableRow>
                       <TableCell>Questions Attempted</TableCell>
                       <TableCell>{attemptedQuestions}</TableCell>
@@ -301,15 +275,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ userAnswers, questions,
                       <TableCell>{scorePercentage}%</TableCell>
                     </TableRow>
                     <TableRow>
-                      <TableCell>Total Word Blanks</TableCell>
-                      <TableCell>{totalBlanks}</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell>Word Placement Accuracy</TableCell>
-                      <TableCell>{blankAccuracy}%</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell>Total Coins Earned</TableCell>
+                      <TableCell>Coins Earned</TableCell>
                       <TableCell>
                         <span className="text-amber-600 font-medium flex items-center">
                           <Coins className="w-4 h-4 mr-1" /> {totalCoins}
@@ -324,16 +290,16 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ userAnswers, questions,
         </TabsContent>
         
         <TabsContent value="questions">
-          <div className="space-y-4">
+          <div className="space-y-3 max-h-[50vh] overflow-y-auto pr-1">
             {userAnswers.map((answer, index) => {
               const question = questions.find(q => q.questionId === answer.questionId);
               if (!question) return null;
               
               return (
                 <Card key={answer.questionId} className={`border-l-4 ${answer.isCorrect ? 'border-l-green-500' : 'border-l-red-500'}`}>
-                  <CardHeader className="pb-3">
+                  <CardHeader className="pb-2 pt-3 px-4">
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg font-medium flex items-center gap-2">
+                      <CardTitle className="text-base font-medium flex items-center gap-2">
                         Question {index + 1}
                         {answer.isCorrect ? (
                           <CheckCircle2 className="text-green-600 w-5 h-5" />
@@ -357,16 +323,16 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ userAnswers, questions,
                   </CardHeader>
                   
                   {expandedQuestion === answer.questionId && (
-                    <CardContent className="pt-0">
-                      <div className="p-3 bg-gray-50 rounded-md mb-3">
+                    <CardContent className="pt-0 px-4 pb-3">
+                      <div className="p-2 bg-gray-50 rounded-md mb-2">
                         <p className="text-sm font-medium text-gray-700">Your Answer:</p>
-                        <p className="text-base">{renderSentenceWithAnswers(question.question, answer.selectedAnswers)}</p>
+                        <p className="text-sm">{renderSentenceWithAnswers(question.question, answer.selectedAnswers)}</p>
                       </div>
                       
                       {!answer.isCorrect && (
-                        <div className="p-3 bg-green-50 rounded-md border border-green-100">
+                        <div className="p-2 bg-green-50 rounded-md border border-green-100">
                           <p className="text-sm font-medium text-gray-700">Correct Answer:</p>
-                          <p className="text-base">{renderSentenceWithAnswers(question.question, question.correctAnswer)}</p>
+                          <p className="text-sm">{renderSentenceWithAnswers(question.question, question.correctAnswer)}</p>
                         </div>
                       )}
                     </CardContent>
@@ -379,14 +345,14 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ userAnswers, questions,
         
         <TabsContent value="breakdown">
           <Card>
-            <CardHeader>
-              <CardTitle>Question Breakdown</CardTitle>
+            <CardHeader className="py-3 px-4">
+              <CardTitle className="text-lg">Question Breakdown</CardTitle>
               <CardDescription>
-                Detailed word-by-word analysis of each answer
+                Detailed analysis of each answer
               </CardDescription>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="divide-y">
+              <div className="divide-y max-h-[50vh] overflow-y-auto">
                 {userAnswers.map((answer, index) => {
                   const question = questions.find(q => q.questionId === answer.questionId);
                   if (!question) return null;
@@ -394,22 +360,28 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ userAnswers, questions,
                   const sentenceParts = parseSentence(question.question);
                   
                   return (
-                    <div key={answer.questionId} className="p-4">
-                      <div className="flex items-center gap-2 mb-3">
-                        <span className="text-lg font-medium">Question {index + 1}</span>
+                    <div key={answer.questionId} className="p-3">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-base font-medium">Question {index + 1}</span>
                         {answer.isCorrect ? (
                           <CheckCircle2 className="text-green-600 w-5 h-5" />
                         ) : (
                           <XCircle className="text-red-600 w-5 h-5" />
                         )}
+                        {answer.isCorrect && (
+                          <span className="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full border border-amber-200 flex items-center">
+                            <Coins className="w-3 h-3 mr-1" />
+                            +1 coin
+                          </span>
+                        )}
                       </div>
                       
-                      <div className="mb-4 text-gray-700 p-4 bg-gray-50 rounded-md">
+                      <div className="mb-3 text-sm text-gray-700 p-3 bg-gray-50 rounded-md">
                         {sentenceParts.map((part, i) => (
                           <React.Fragment key={i}>
                             {part}
                             {i < sentenceParts.length - 1 && (
-                              <span className={`px-2 py-1 mx-1 rounded-md inline-flex items-center justify-center
+                              <span className={`px-1.5 py-0.5 mx-1 rounded-md inline-flex items-center justify-center text-xs
                                 ${answer.selectedAnswers[i] === question.correctAnswer[i] 
                                   ? 'bg-green-100 text-green-800 border border-green-300' 
                                   : 'bg-red-100 text-red-800 border border-red-300'
@@ -417,7 +389,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ userAnswers, questions,
                               >
                                 {answer.selectedAnswers[i]}
                                 {answer.selectedAnswers[i] !== question.correctAnswer[i] && (
-                                  <span className="ml-2 text-xs bg-white px-1.5 py-0.5 rounded border border-red-200">
+                                  <span className="ml-1 text-xs bg-white px-1 py-0.5 rounded border border-red-200">
                                     ✕
                                   </span>
                                 )}
@@ -428,14 +400,14 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ userAnswers, questions,
                       </div>
                       
                       {!answer.isCorrect && (
-                        <div className="mt-4">
-                          <div className="text-sm font-medium text-gray-700 mb-2">Correct Answer:</div>
-                          <div className="text-gray-800 p-4 bg-green-50 rounded-md border border-green-100">
+                        <div className="mt-3 mb-2">
+                          <div className="text-xs font-medium text-gray-700 mb-1">Correct Answer:</div>
+                          <div className="text-sm text-gray-800 p-3 bg-green-50 rounded-md border border-green-100">
                             {sentenceParts.map((part, i) => (
                               <React.Fragment key={i}>
                                 {part}
                                 {i < sentenceParts.length - 1 && (
-                                  <span className="px-2 py-1 mx-1 rounded-md inline-flex items-center justify-center bg-green-100 text-green-800 border border-green-300">
+                                  <span className="px-1.5 py-0.5 mx-1 rounded-md inline-flex items-center justify-center text-xs bg-green-100 text-green-800 border border-green-300">
                                     {question.correctAnswer[i]}
                                   </span>
                                 )}
@@ -444,37 +416,6 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ userAnswers, questions,
                           </div>
                         </div>
                       )}
-                      
-                      <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2">
-                        {question.correctAnswer.map((word, i) => {
-                          const isCorrect = answer.selectedAnswers[i] === word;
-                          return (
-                            <div key={i} className={`text-center text-sm p-2 rounded-md border ${
-                              isCorrect ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'
-                            }`}>
-                              <div className="font-medium">Blank {i+1}</div>
-                              <div className="flex flex-col items-center justify-center mt-1">
-                                <div className="flex items-center gap-1">
-                                  <span>Your:</span>
-                                  <span className="font-medium">{answer.selectedAnswers[i] || '(empty)'}</span>
-                                </div>
-                                {!isCorrect && (
-                                  <div className="flex items-center gap-1">
-                                    <span>Correct:</span>
-                                    <span className="font-medium">{word}</span>
-                                  </div>
-                                )}
-                                {isCorrect && (
-                                  <div className="text-green-600 mt-1 flex items-center">
-                                    <Coins className="w-3.5 h-3.5 mr-1" />
-                                    <span>+1 coin</span>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
                     </div>
                   );
                 })}

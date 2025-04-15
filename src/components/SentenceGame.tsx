@@ -9,7 +9,7 @@ import Timer from './Timer';
 import SentenceDisplay from './SentenceDisplay';
 import WordOptions from './WordOptions';
 import { Button } from '@/components/ui/button';
-import { ChevronRight, AlertCircle, LogOut, Coins } from 'lucide-react';
+import { ChevronRight, AlertCircle, LogOut, Coins, Info } from 'lucide-react';
 import { useGameContext } from '@/contexts/GameContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -21,7 +21,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogClose
 } from "@/components/ui/dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface SentenceGameProps {
   questions: QuestionOption[];
@@ -41,6 +43,7 @@ const SentenceGame: React.FC<SentenceGameProps> = ({ questions }) => {
   const [timerActive, setTimerActive] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isQuitDialogOpen, setIsQuitDialogOpen] = useState(false);
+  const [isCoinInfoOpen, setIsCoinInfoOpen] = useState(false);
 
   const currentQuestion = questions[currentQuestionIndex];
   const sentenceParts = parseSentence(currentQuestion.question);
@@ -103,7 +106,7 @@ const SentenceGame: React.FC<SentenceGameProps> = ({ questions }) => {
       questionId: currentQuestion.questionId,
       selectedAnswers: [...selectedWords],
       isCorrect: checkAnswers(selectedWords, currentQuestion.correctAnswer),
-      questionData: currentQuestion // Store question data for coin calculation
+      questionData: currentQuestion // Store question data for result display
     };
     
     saveAnswer(newUserAnswer);
@@ -142,17 +145,27 @@ const SentenceGame: React.FC<SentenceGameProps> = ({ questions }) => {
 
   return (
     <Card className="max-w-3xl mx-auto shadow-lg border-purple-200 bg-white/90 backdrop-blur-sm">
-      <CardContent className="p-4 md:p-8">
-        <div className="flex items-center justify-between mb-6">
+      <CardContent className="p-4 md:p-6">
+        <div className="flex items-center justify-between mb-4">
           <div className="flex-1">
             <p className="text-sm text-gray-500 mb-1">Question {currentQuestionIndex + 1} of {questions.length}</p>
             <Progress value={progressPercentage} className="h-2 bg-gray-200" />
           </div>
           
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <div className="hidden sm:flex items-center gap-2 bg-amber-50 px-3 py-1.5 rounded-full border border-amber-200">
-              <Coins className="w-4 h-4 text-amber-500" />
-              <span className="font-medium text-amber-700">{totalCoins} coins</span>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button className="flex items-center gap-1">
+                    <Coins className="w-4 h-4 text-amber-500" />
+                    <span className="font-medium text-amber-700">{totalCoins} coins</span>
+                    <Info className="w-3.5 h-3.5 text-amber-500 ml-0.5" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent className="bg-white p-2 text-xs w-48 text-gray-700">
+                  Earn 1 coin for each correctly answered question. Maximum 10 coins total.
+                </TooltipContent>
+              </Tooltip>
             </div>
             
             <Dialog open={isQuitDialogOpen} onOpenChange={setIsQuitDialogOpen}>
@@ -181,10 +194,40 @@ const SentenceGame: React.FC<SentenceGameProps> = ({ questions }) => {
           </div>
         </div>
         
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-          <div className="flex items-center gap-2 sm:hidden bg-amber-50 px-3 py-1.5 rounded-full border border-amber-200">
-            <Coins className="w-4 h-4 text-amber-500" />
-            <span className="font-medium text-amber-700">{totalCoins} coins</span>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2 sm:hidden bg-amber-50 px-3 py-1.5 rounded-full border border-amber-200">
+              <Coins className="w-4 h-4 text-amber-500" />
+              <span className="font-medium text-amber-700">{totalCoins} coins</span>
+              
+              <Dialog open={isCoinInfoOpen} onOpenChange={setIsCoinInfoOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-5 w-5 p-0">
+                    <Info className="h-3.5 w-3.5 text-amber-500" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Coin Rewards</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-2">
+                    <p>Earn coins by answering questions correctly:</p>
+                    <ul className="list-disc pl-5 space-y-1">
+                      <li>Each <span className="font-medium">completely correct</span> question earns you 1 coin</li>
+                      <li>Maximum of 10 coins total (1 per question)</li>
+                      <li>All blanks must be filled correctly to earn a coin</li>
+                    </ul>
+                  </div>
+                  <DialogFooter className="sm:justify-start">
+                    <DialogClose asChild>
+                      <Button type="button" variant="secondary">
+                        Close
+                      </Button>
+                    </DialogClose>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
           
           <Timer 
@@ -195,13 +238,13 @@ const SentenceGame: React.FC<SentenceGameProps> = ({ questions }) => {
         </div>
         
         {!isAllBlanksFilledIn && (
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-start gap-2 text-amber-800 text-sm mt-4">
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-start gap-2 text-amber-800 text-sm mb-4">
             <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
             <p>Fill in all blanks to continue to the next question.</p>
           </div>
         )}
         
-        <div className="bg-purple-50 rounded-xl p-4 md:p-6 border border-purple-100 mb-8">
+        <div className="bg-purple-50 rounded-xl p-4 border border-purple-100 mb-6">
           <SentenceDisplay 
             sentenceParts={sentenceParts} 
             selectedWords={selectedWords} 
@@ -215,7 +258,7 @@ const SentenceGame: React.FC<SentenceGameProps> = ({ questions }) => {
           disabledOptions={selectedWords.filter(word => word !== null) as string[]}
         />
         
-        <div className="flex justify-center mt-8">
+        <div className="flex justify-center mt-6">
           <Button
             onClick={saveAnswerAndContinue}
             disabled={!isAllBlanksFilledIn || isSubmitting}

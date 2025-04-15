@@ -23,4 +23,5 @@ export interface TestResult {
   completionTime?: number;
   wordAccuracy?: number;
   totalCoins?: number;
+  score?: number;
 }

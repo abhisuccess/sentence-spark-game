@@ -25,8 +25,8 @@ const ResultsPage = () => {
   }
   
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 py-8">
-      <div className="container mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 py-4 md:py-6 flex items-start justify-center">
+      <div className="container mx-auto h-[calc(100vh-3rem)]">
         <ResultsDisplay 
           userAnswers={userAnswers}
           questions={questionsData.data.questions}
