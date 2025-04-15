@@ -12,26 +12,34 @@ interface TimerProps {
 const Timer: React.FC<TimerProps> = ({ duration, onTimeUp, isActive }) => {
   const [timeLeft, setTimeLeft] = useState(duration);
   
+  // Reset timer when it becomes active or duration changes
   useEffect(() => {
-    if (!isActive) return;
-    
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          onTimeUp();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    
-    return () => clearInterval(timer);
-  }, [duration, onTimeUp, isActive]);
+    if (isActive) {
+      setTimeLeft(duration);
+    }
+  }, [duration, isActive]);
   
+  // Handle countdown
   useEffect(() => {
-    setTimeLeft(duration);
-  }, [duration]);
+    let timer: NodeJS.Timeout | null = null;
+    
+    if (isActive && timeLeft > 0) {
+      timer = setInterval(() => {
+        setTimeLeft((prev) => {
+          if (prev <= 1) {
+            if (timer) clearInterval(timer);
+            onTimeUp();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [isActive, timeLeft, onTimeUp]);
   
   // Format time as MM:SS
   const minutes = Math.floor(timeLeft / 60);

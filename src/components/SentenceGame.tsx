@@ -71,7 +71,36 @@ const SentenceGame: React.FC<SentenceGameProps> = ({ questions }) => {
     toast.error('Time is up!', {
       description: 'Moving to the next question.'
     });
-    saveAnswerAndContinue();
+    
+    // Auto-save current answer state even if incomplete
+    const newUserAnswer: UserAnswer = {
+      questionId: currentQuestion.questionId,
+      selectedAnswers: [...selectedWords],
+      isCorrect: checkAnswers(selectedWords, currentQuestion.correctAnswer)
+    };
+    
+    const updatedUserAnswers = [...userAnswers];
+    const existingIndex = updatedUserAnswers.findIndex(
+      answer => answer.questionId === currentQuestion.questionId
+    );
+    
+    if (existingIndex !== -1) {
+      updatedUserAnswers[existingIndex] = newUserAnswer;
+    } else {
+      updatedUserAnswers.push(newUserAnswer);
+    }
+    
+    setUserAnswers(updatedUserAnswers);
+    
+    // Move to next question automatically after a brief delay
+    setTimeout(() => {
+      if (currentQuestionIndex < questions.length - 1) {
+        setCurrentQuestionIndex(currentQuestionIndex + 1);
+      } else {
+        // Complete the game if this was the last question
+        navigate('/results');
+      }
+    }, 1000);
   };
 
   const saveAnswerAndContinue = () => {
