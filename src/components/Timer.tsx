@@ -1,6 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
-import { Timer as TimerIcon } from 'lucide-react';
+import { Clock, AlertTriangle } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
 
 interface TimerProps {
   duration: number;
@@ -40,19 +41,38 @@ const Timer: React.FC<TimerProps> = ({ duration, onTimeUp, isActive }) => {
   // Calculate progress percentage for the timer display
   const progressPercentage = (timeLeft / duration) * 100;
   
+  // Determine color based on time left
+  const getColor = () => {
+    if (timeLeft <= 5) return 'text-red-500';
+    if (timeLeft <= 10) return 'text-orange-500';
+    return 'text-purple-600';
+  };
+  
+  const getProgressColor = () => {
+    if (timeLeft <= 5) return 'bg-red-500';
+    if (timeLeft <= 10) return 'bg-orange-500';
+    return 'bg-purple-600';
+  };
+
   return (
-    <div className="flex items-center gap-2 bg-white p-3 rounded-full shadow-md">
-      <TimerIcon className={`w-5 h-5 ${timeLeft <= 10 ? 'text-red-500 animate-pulse' : 'text-gray-600'}`} />
-      <div className="flex items-center">
-        <div className="h-1.5 w-24 bg-gray-200 rounded-full overflow-hidden">
-          <div 
-            className={`h-full ${timeLeft <= 10 ? 'bg-red-500' : 'bg-green-500'}`} 
-            style={{ width: `${progressPercentage}%` }}
-          ></div>
-        </div>
-        <span className={`ml-2 font-mono text-sm font-semibold ${timeLeft <= 10 ? 'text-red-500' : 'text-gray-600'}`}>
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-3 flex flex-col items-center">
+      <div className="flex items-center gap-2 mb-2">
+        {timeLeft <= 10 ? (
+          <AlertTriangle className={`w-5 h-5 ${timeLeft <= 5 ? 'animate-pulse text-red-500' : 'text-orange-500'}`} />
+        ) : (
+          <Clock className="w-5 h-5 text-purple-600" />
+        )}
+        <span className={`font-mono text-lg font-semibold ${getColor()}`}>
           {formattedTime}
         </span>
+      </div>
+      
+      <div className="w-full">
+        <Progress 
+          value={progressPercentage} 
+          className="h-2 bg-gray-200"
+          indicatorClassName={getProgressColor()}
+        />
       </div>
     </div>
   );

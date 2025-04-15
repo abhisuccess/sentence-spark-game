@@ -18,4 +18,8 @@ export interface TestResult {
   totalQuestions: number;
   correctAnswers: number;
   userAnswers: UserAnswer[];
+  userName?: string;
+  completionTime?: number;
+  wordAccuracy?: number;
 }
+
