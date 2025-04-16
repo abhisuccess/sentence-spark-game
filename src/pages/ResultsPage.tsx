@@ -52,27 +52,27 @@ const ResultsPage = () => {
   }
   
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white py-4 md:py-6 flex items-start justify-center">
-      <div className="container mx-auto h-[calc(100vh-3rem)]">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white py-2 sm:py-4 md:py-6 flex items-start justify-center">
+      <div className="container mx-auto px-2 h-full">
         <ResultsDisplay 
           userAnswers={userAnswers}
           questions={questionsData.data.questions}
           onRestart={resetGame}
         />
         
-        <Card className="mt-6 border-blue-200 shadow-md max-w-md mx-auto">
-          <CardHeader>
-            <CardTitle className="text-blue-700">Share Your Results</CardTitle>
-            <CardDescription>Get your results sent to your email</CardDescription>
+        <Card className="mt-4 sm:mt-6 border-blue-200 shadow-md max-w-md mx-auto">
+          <CardHeader className="py-3 px-3 sm:px-4">
+            <CardTitle className="text-blue-700 text-lg sm:text-xl">Share Your Results</CardTitle>
+            <CardDescription className="text-sm">Get your results sent to your email</CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-3">
+          <CardContent className="py-2 px-3 sm:px-4">
+            <div className="flex items-center gap-2 sm:gap-3">
               <div className="relative flex-1">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-500" />
+                <Mail className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-500" />
                 <Input 
                   type="email" 
                   placeholder="Your email address" 
-                  className="pl-9 border-blue-200 focus-visible:ring-blue-500"
+                  className="pl-7 sm:pl-9 border-blue-200 focus-visible:ring-blue-500 text-sm py-2"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
@@ -80,10 +80,10 @@ const ResultsPage = () => {
               <Button 
                 onClick={handleSendEmail} 
                 disabled={isSending} 
-                className="bg-blue-600 hover:bg-blue-700"
+                className="bg-blue-600 hover:bg-blue-700 py-1 px-2 sm:px-3 h-auto text-sm"
               >
                 {isSending ? 'Sending...' : 'Send'}
-                <Send className="ml-2 h-4 w-4" />
+                <Send className="ml-1 sm:ml-2 h-3 w-3 sm:h-4 sm:w-4" />
               </Button>
             </div>
           </CardContent>
