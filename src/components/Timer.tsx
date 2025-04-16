@@ -7,17 +7,18 @@ interface TimerProps {
   duration: number;
   onTimeUp: () => void;
   isActive: boolean;
+  currentQuestionIndex: number; // Add this to track question changes
 }
 
-const Timer: React.FC<TimerProps> = ({ duration, onTimeUp, isActive }) => {
+const Timer: React.FC<TimerProps> = ({ duration, onTimeUp, isActive, currentQuestionIndex }) => {
   const [timeLeft, setTimeLeft] = useState(duration);
   
-  // Reset timer when it becomes active or duration changes
+  // Reset timer when question changes or when isActive changes
   useEffect(() => {
     if (isActive) {
       setTimeLeft(duration);
     }
-  }, [duration, isActive]);
+  }, [duration, isActive, currentQuestionIndex]);
   
   // Handle countdown
   useEffect(() => {
@@ -54,22 +55,22 @@ const Timer: React.FC<TimerProps> = ({ duration, onTimeUp, isActive }) => {
   const getColor = () => {
     if (timeLeft <= 5) return 'text-red-500';
     if (timeLeft <= 10) return 'text-orange-500';
-    return 'text-purple-600';
+    return 'text-blue-600';
   };
   
   const getProgressColor = () => {
     if (timeLeft <= 5) return 'bg-red-500';
     if (timeLeft <= 10) return 'bg-orange-500';
-    return 'bg-purple-600';
+    return 'bg-blue-600';
   };
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-3 flex flex-col items-center">
+    <div className="bg-white rounded-xl border border-blue-200 shadow-sm p-3 flex flex-col items-center">
       <div className="flex items-center gap-2 mb-2">
         {timeLeft <= 10 ? (
           <AlertTriangle className={`w-5 h-5 ${timeLeft <= 5 ? 'animate-pulse text-red-500' : 'text-orange-500'}`} />
         ) : (
-          <Clock className="w-5 h-5 text-purple-600" />
+          <Clock className="w-5 h-5 text-blue-600" />
         )}
         <span className={`font-mono text-lg font-semibold ${getColor()}`}>
           {formattedTime}

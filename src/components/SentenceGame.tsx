@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -144,28 +143,30 @@ const SentenceGame: React.FC<SentenceGameProps> = ({ questions }) => {
   const progressPercentage = ((currentQuestionIndex + 1) / questions.length) * 100;
 
   return (
-    <Card className="max-w-3xl mx-auto shadow-lg border-purple-200 bg-white/90 backdrop-blur-sm">
+    <Card className="max-w-3xl mx-auto shadow-lg border-blue-200 bg-white/90 backdrop-blur-sm">
       <CardContent className="p-4 md:p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex-1">
             <p className="text-sm text-gray-500 mb-1">Question {currentQuestionIndex + 1} of {questions.length}</p>
-            <Progress value={progressPercentage} className="h-2 bg-gray-200" />
+            <Progress value={progressPercentage} className="h-2 bg-gray-200" indicatorClassName="bg-blue-500" />
           </div>
           
           <div className="flex items-center gap-2">
-            <div className="hidden sm:flex items-center gap-2 bg-amber-50 px-3 py-1.5 rounded-full border border-amber-200">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button className="flex items-center gap-1">
-                    <Coins className="w-4 h-4 text-amber-500" />
-                    <span className="font-medium text-amber-700">{totalCoins} coins</span>
-                    <Info className="w-3.5 h-3.5 text-amber-500 ml-0.5" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent className="bg-white p-2 text-xs w-48 text-gray-700">
-                  Earn 1 coin for each correctly answered question. Maximum 10 coins total.
-                </TooltipContent>
-              </Tooltip>
+            <div className="hidden sm:flex items-center gap-2 bg-blue-50 px-3 py-1.5 rounded-full border border-blue-200">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button className="flex items-center gap-1">
+                      <Coins className="w-4 h-4 text-blue-500" />
+                      <span className="font-medium text-blue-700">{totalCoins} coins</span>
+                      <Info className="w-3.5 h-3.5 text-blue-500 ml-0.5" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-white p-2 text-xs w-48 text-gray-700">
+                    Earn 1 coin for each correctly answered question. Maximum 10 coins total.
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
             
             <Dialog open={isQuitDialogOpen} onOpenChange={setIsQuitDialogOpen}>
@@ -196,14 +197,14 @@ const SentenceGame: React.FC<SentenceGameProps> = ({ questions }) => {
         
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
           <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-2 sm:hidden bg-amber-50 px-3 py-1.5 rounded-full border border-amber-200">
-              <Coins className="w-4 h-4 text-amber-500" />
-              <span className="font-medium text-amber-700">{totalCoins} coins</span>
+            <div className="flex items-center gap-2 sm:hidden bg-blue-50 px-3 py-1.5 rounded-full border border-blue-200">
+              <Coins className="w-4 h-4 text-blue-500" />
+              <span className="font-medium text-blue-700">{totalCoins} coins</span>
               
               <Dialog open={isCoinInfoOpen} onOpenChange={setIsCoinInfoOpen}>
                 <DialogTrigger asChild>
                   <Button variant="ghost" size="icon" className="h-5 w-5 p-0">
-                    <Info className="h-3.5 w-3.5 text-amber-500" />
+                    <Info className="h-3.5 w-3.5 text-blue-500" />
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-md">
@@ -234,17 +235,18 @@ const SentenceGame: React.FC<SentenceGameProps> = ({ questions }) => {
             duration={30} 
             onTimeUp={handleTimeUp} 
             isActive={timerActive}
+            currentQuestionIndex={currentQuestionIndex} // Pass the current question index
           />
         </div>
         
         {!isAllBlanksFilledIn && (
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-start gap-2 text-amber-800 text-sm mb-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start gap-2 text-blue-800 text-sm mb-4">
             <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
             <p>Fill in all blanks to continue to the next question.</p>
           </div>
         )}
         
-        <div className="bg-purple-50 rounded-xl p-4 border border-purple-100 mb-6">
+        <div className="bg-blue-50 rounded-xl p-4 border border-blue-100 mb-6">
           <SentenceDisplay 
             sentenceParts={sentenceParts} 
             selectedWords={selectedWords} 
@@ -262,7 +264,7 @@ const SentenceGame: React.FC<SentenceGameProps> = ({ questions }) => {
           <Button
             onClick={saveAnswerAndContinue}
             disabled={!isAllBlanksFilledIn || isSubmitting}
-            className={`flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 text-lg rounded-lg transition-all 
+            className={`flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 text-lg rounded-lg transition-all 
               ${isAllBlanksFilledIn ? 'animate-pulse shadow-md' : ''}
               ${isSubmitting ? 'opacity-80 cursor-not-allowed' : ''}`}
           >
