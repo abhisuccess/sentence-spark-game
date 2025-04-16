@@ -30,9 +30,9 @@ const GamePage = () => {
   }
   
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white py-4 md:py-6">
-      <div className="container mx-auto px-4 h-[calc(100vh-2rem)] flex flex-col">
-        <div className="flex justify-between items-center mb-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white laptop-fit overflow-hidden">
+      <div className="container mx-auto px-4 h-full flex flex-col">
+        <div className="flex justify-between items-center py-3">
           <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm border border-blue-200">
             <User className="h-5 w-5 text-blue-600" />
             <span className="font-medium text-gray-700">{userName}</span>
@@ -49,7 +49,7 @@ const GamePage = () => {
           </Button>
         </div>
         
-        <div className="flex-1 flex items-center justify-center">
+        <div className="flex-1 flex items-center justify-center game-container">
           <SentenceGame questions={questionsData.data.questions} />
         </div>
       </div>
